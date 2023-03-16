@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>고양이 가라사대</title>
+</head>
+
+<style>
+  body {
+    text-align: center;
+  }
+
+  .main-card button {
+    position: relative;
+    left: -45px;
+    bottom: 15px;
+  }
+
+  .favorites {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+</style>
+
+<body>
+  <div id="app"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <script type="text/babel">
+    const jsonLocalStorage = {
+      setItem: (key, value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+      },
+      getItem: (key) => {
+        return JSON.parse(localStorage.getItem(key));
+      },
+    };
+
+    console.log("야옹");
+
+    /*CatItem component*/
+    function CatItem(props) {
+      // console.log(props);
+      return (
+        <li>
+          <img src={props.image} style={{ width: '150px' }} />
+        </li>
+      );
+    }
+
+    function Favorites({ favorites }) {
+      return (
+        <ul className="favorites">
+          {favorites.map(cat => <CatItem image={cat} key={cat} />)}
+        </ul>
+      );
+    }
+
+    const MainCard = ({ image, onHeartClick }) => {
+      return (
+        // console.log(props)
+        <div className="main-card">
+          <img src={image} alt='고양이' width="500" />
+          <button onClick={onHeartClick}>🤍</button>
+        </div>
+      );
+    }
+
+    const Input = ({ updateMainCat }) => {
+      const [value, setValue] = React.useState('');
+      const includesHangul = (text) => /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/i.test(text);
+      const [errorMessage, setErrorMessage] = React.useState('');
+
+      function handleInputChange(e) {
+        const userValue = e.target.value;
+        // console.log(includesHangul(userValue));
+        if (includesHangul(userValue)) {
+          setErrorMessage("한글은 입력할 수 없습니다.");
+        } else {
+          setErrorMessage("");
+        }
+        setValue(userValue.toUpperCase());
+      }
+
+      function handleFormSubmit(e) {
+        e.preventDefault();
+        setErrorMessage('');
+        if (value === '') { setErrorMessage("빈 값으로 만들 수 없습니다."); return; }
+        updateMainCat();
+      }
+
+      return (
+        <form onSubmit={handleFormSubmit}>
+          <input type="text" name="name"
+            value={value}
+            placeholder="영어 대사를 입력해주세요" onChange={handleInputChange} />
+          <button type="submit">생성</button>
+          <p style={{ color: 'red' }}>{errorMessage}</p>
+        </form>
+      );
+    }
+
+    const Title = (props) => {
+      return (
+        // console.log(props)
+        <h1>{props.children}</h1>
+      );
+    }
+
+    const App = () => {
+      const CAT1 = "https://img.freepik.com/free-photo/close-up-portrait-on-beautiful-cat_23-2149214373.jpg";
+      const CAT2 = "https://img.freepik.com/free-photo/adorable-kitty-looking-like-it-want-to-hunt_23-2149167099.jpg";
+      const CAT3 = "https://t1.daumcdn.net/cfile/tistory/216C553953FC27C335";
+      const cats = [CAT1, CAT2];
+
+      const [counter, setCounter] = React.useState(jsonLocalStorage.getItem('counter') || 1);
+      const [catImage, setCatImage] = React.useState(CAT1);
+      const [favorites, setFavorites] = React.useState(jsonLocalStorage.getItem('favorites') || []);
+
+      function updateMainCat() {
+        setCatImage(CAT2);
+        const nextCounter = counter + 1;
+        setCounter(nextCounter);
+        jsonLocalStorage.setItem('counter', nextCounter);
+      }
+
+      function handleHeartClick() {
+        const nextFavorites = [...favorites, catImage];
+        setFavorites(nextFavorites);
+        jsonLocalStorage.setItem('favorites', nextFavorites);
+      }
+
+      return (
+        <div>
+          <Title> {counter}번째 고양이 가라사대 </Title>
+          <Input updateMainCat={updateMainCat} />
+          <MainCard image={catImage} onHeartClick={handleHeartClick} />
+          <Favorites favorites={favorites} />
+        </div>
+      )
+    }
+
+    const 여기다가그려 = document.querySelector("#app");
+    // render : '그리다' 라는 뜻
+    ReactDOM.createRoot(여기다가그려).render(<App />);  
+  </script>
+</body>
+
+</html>
